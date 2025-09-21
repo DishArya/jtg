@@ -190,6 +190,80 @@ document.addEventListener('DOMContentLoaded', function() {
   promoVideo?.addEventListener('pause', updateOverlay);
   updateOverlay();
 
+  /***** Quantity Controls for Popular Items *****/
+  const quantityItems = new Map(); // Store quantities for each item
+
+  function showExpandedControls(slide) {
+    const addBtn = slide.querySelector('.add-btn');
+    const expandedControls = slide.querySelector('.quantity-controls-expanded');
+    
+    if (addBtn && expandedControls) {
+      addBtn.style.display = 'none';
+      expandedControls.style.display = 'flex';
+    }
+  }
+
+  function hideExpandedControls(slide) {
+    const addBtn = slide.querySelector('.add-btn');
+    const expandedControls = slide.querySelector('.quantity-controls-expanded');
+    
+    if (addBtn && expandedControls) {
+      addBtn.style.display = 'flex';
+      expandedControls.style.display = 'none';
+    }
+  }
+
+  function updateQuantityDisplay(slide, quantity) {
+    const quantityDisplay = slide.querySelector('.quantity-display');
+    const minusBtn = slide.querySelector('.minus-btn');
+    
+    if (quantityDisplay) quantityDisplay.textContent = quantity;
+    if (minusBtn) {
+      minusBtn.disabled = quantity <= 0;
+      minusBtn.style.opacity = quantity <= 0 ? '0.5' : '1';
+    }
+
+    // Show/hide controls based on quantity
+    if (quantity === 0) {
+      hideExpandedControls(slide);
+    } else {
+      showExpandedControls(slide);
+    }
+  }
+
+  function handleQuantityChange(slide, action) {
+    const itemId = slide.getAttribute('data-item-id');
+    let currentQuantity = quantityItems.get(itemId) || 0;
+    
+    if (action === 'add' || action === 'increase') {
+      currentQuantity++;
+    } else if (action === 'decrease' && currentQuantity > 0) {
+      currentQuantity--;
+    }
+    
+    quantityItems.set(itemId, currentQuantity);
+    updateQuantityDisplay(slide, currentQuantity);
+  }
+
+  // Add event listeners to all quantity control buttons
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('qty-btn')) {
+      const slide = e.target.closest('.slide');
+      const action = e.target.getAttribute('data-action');
+      
+      if (slide && action) {
+        handleQuantityChange(slide, action);
+      }
+    }
+  });
+
+  // Initialize all quantity displays
+  document.querySelectorAll('.slide[data-item-id]').forEach(slide => {
+    const itemId = slide.getAttribute('data-item-id');
+    const initialQuantity = quantityItems.get(itemId) || 0;
+    updateQuantityDisplay(slide, initialQuantity);
+  });
+
 }); // DOMContentLoaded end
 
 // Clear contact form inputs on submit
